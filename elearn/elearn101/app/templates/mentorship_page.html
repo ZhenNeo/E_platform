@@ -83,15 +83,32 @@
 
 
 	<div class="card">
-	<h1 class="title">Buy 1on1 mentorship</h1>
-	<small class="muted"
-		>Want 1on1 mentorship from xyz.site pay ₹200</small
-	>
-	<div class="btn_container">
-		<!-- Payment Button -->
-		<button class="btn" id="pay-btn">Pay</button>
-	</div>
-	</div>
+    <h1 class="title">Buy 1 on 1 mentorship</h1>
+    <small class="muted">Want 1 on 1 mentorship from XYZ.site? Pay ₹200</small>
+    <!-- Form for user details and mentorship reason -->
+    <form id="mentorship-form">
+        <div class="form-group">
+            <label for="name">Name</label>
+            <input type="text" class="form-control" id="name" placeholder="Enter your name" required>
+        </div>
+        <div class="form-group">
+            <label for="email">Email</label>
+            <input type="email" class="form-control" id="email" placeholder="Enter your email" required>
+        </div>
+        <div class="form-group">
+            <label for="phone">Phone Number</label>
+            <input type="tel" class="form-control" id="phone" placeholder="Enter your phone number" required>
+        </div>
+        <div class="form-group">
+            <label for="reason">Reason for seeking mentorship</label>
+            <textarea class="form-control" id="reason" rows="3" placeholder="Enter your reason" required></textarea>
+        </div>
+        <!-- Payment Button -->
+        <div class="btn_container">
+            <button class="btn" id="pay-btn">Pay</button>
+        </div>
+    </form>
+</div>
 </body>
 
 <!-- Razorpay's Javascript code. -->

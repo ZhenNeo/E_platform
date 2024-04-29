@@ -2,7 +2,7 @@ from django.contrib.auth import authenticate, login, logout
 from django.shortcuts import render, get_object_or_404, redirect
 from .models import Course, Enrollment
 from django.contrib.auth.models import User
-from .models import Usertbl
+from .models import Student
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render
@@ -80,11 +80,11 @@ def signup(request):
                 myuser = User.objects.create_user(username=username, password=pass1)
                 myuser.save()
 
-                user_tbl = Usertbl(
+                student = Student(
                     username=username,
 
                 )
-                user_tbl.save()
+                student.save()
                 return render(request, "signup_login.html", {'success_message': "User got Created"})
             else:
                 return render(request, "signup_login.html",

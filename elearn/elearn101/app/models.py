@@ -21,7 +21,7 @@ class Course(models.Model):
         return self.title
 
 
-class Usertbl(models.Model):
+class Student(models.Model):
     username = models.CharField(max_length=100)
 
     def __str__(self):
@@ -34,3 +34,16 @@ class Enrollment(models.Model):
 
     def __str__(self):
         return f"{self.user.username} enrolled in {self.course.title}"
+
+
+class Mentorship(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    name = models.CharField(max_length=100, null=True)
+    email = models.EmailField(null=True)
+    reason = models.TextField()
+    phone_number = models.CharField(max_length=15)
+    course = models.ForeignKey(Course, on_delete=models.CASCADE)  # Assuming each mentorship is associated with a course
+    timestamp = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Mentorship for {self.user.username}"
