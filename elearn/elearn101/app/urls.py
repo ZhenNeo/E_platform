@@ -14,4 +14,6 @@ urlpatterns = [
     path('user_login', views.user_login, name='user_login'),
     path("loginerror", views.loginerror, name="login-error"),
     path('logout/', views.logout_user, name='logout'),
+    path('enrolled-courses/<int:course_id>/start-course', views.start_course, name='start_course'),
+    path('start-course/<int:course_id>/previous_question_papers/', views.previous_question_papers, name='previous_question_papers'),
 ]

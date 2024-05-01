@@ -16,6 +16,8 @@ class Course(models.Model):
     category = models.CharField(max_length=100, choices=CATEGORY_CHOICES, default=TECH_COURSE)
     grade = models.CharField(max_length=10, blank=True, null=True)
     image = models.ImageField(upload_to='staticfiles/course_images/', null=True, blank=True)
+    demo_video = models.FileField(upload_to='staticfiles/demo_videos/', null=True, blank=True)
+    course_video = models.FileField(upload_to='staticfiles/course_videos/', null=True, blank=True)
 
     def __str__(self):
         return self.title
@@ -47,3 +49,13 @@ class Mentorship(models.Model):
 
     def __str__(self):
         return f"Mentorship for {self.user.username}"
+
+class QuestionPaper(models.Model):
+    title = models.CharField(max_length=200)
+    year = models.IntegerField()
+    subject = models.CharField(max_length=100)
+    file = models.FileField(upload_to='question_papers/')
+    course = models.ForeignKey(Course, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return self.title

@@ -8,6 +8,29 @@
     <title>{{ course.title }} Details</title>
     <!-- Bootstrap CSS -->
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        .video-card {
+            border: 1px solid #dee2e6;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        .video-card .card-header {
+            background-color: #007bff;
+            color: #fff;
+            padding: 10px;
+            text-align: center;
+        }
+
+        .video-card video {
+            width: 100%;
+            max-width: 400px; /* Adjust the max-width as needed */
+            display: block;
+            margin: 0 auto; /* Center the video horizontally */
+        }
+    </style>
 </head>
 <body>
 <!-- Header -->
@@ -47,18 +70,37 @@
     </div>
 </div>
 
-
-
 <div class="container mt-5">
-        <h2>{{ course.title }}</h2>
-        <p>{{ course.description }}</p>
-        <p><strong>Price: ${{ course.price }}</strong></p>
-<form method="post" action="{% url 'course_payment' course.id %}">
-    {% csrf_token %}
-    <button type="submit" class="btn btn-primary">Enroll Now</button>
-</form>
-    </div>
+    <h2>{{ course.title }}</h2>
+    <p>{{ course.description }}</p>
+    <p><strong>Price: ${{ course.price }}</strong></p>
 
+    <!-- Course Video -->
+    {% if course.demo_video %}
+    <div class="video-card mt-4">
+        <div class="card-header">
+            Course Demo Video
+        </div>
+        <video controls>
+            <source src="{{ course.demo_video.url }}" type="{{ course.demo_video.content_type }}">
+            Your browser does not support the video tag.
+        </video>
+    </div>
+    {% endif %}
+
+    <form method="post" action="{% url 'course_payment' course.id %}">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-primary mt-4">Enroll Now</button>
+    </form>
+    <br>
+<br>
+<br>
+<br>
+    <br>
+<br>
+<br>
+<br>
+</div>
 
 
 <!-- Bootstrap JS (Optional - Only if needed for JavaScript functionality) -->

@@ -1,6 +1,6 @@
 from django.contrib.auth import authenticate, login, logout
 from django.shortcuts import render, get_object_or_404, redirect
-from .models import Course, Enrollment
+from .models import Course, Enrollment, QuestionPaper
 from django.contrib.auth.models import User
 from .models import Student
 from django.contrib import messages
@@ -9,7 +9,7 @@ from django.shortcuts import render
 import razorpay
 from django.conf import settings
 from django.views.decorators.csrf import csrf_exempt
-from django.http import HttpResponseBadRequest
+from django.http import HttpResponseBadRequest, FileResponse, HttpResponse
 
 
 def course_catalog(request):
@@ -20,6 +20,10 @@ def course_catalog(request):
 def view_course_details(request, course_id):
     course = Course.objects.get(id=course_id)
     return render(request, 'view_course_details.html', {'course': course})
+
+def start_course(request, course_id):
+    course = Course.objects.get(id=course_id)
+    return render(request, 'start_course.html', {'course': course})
 
 
 @login_required
@@ -63,6 +67,21 @@ def enrolled_course(request):
 
     return render(request, 'enrolled_course.html', {'enrolled_courses': enrolled_courses})
 
+def previous_question_papers(request, course_id):
+    course = get_object_or_404(Course, pk=course_id)
+    question_paper = QuestionPaper.objects.filter(course=course).first()
+    
+    if question_paper:
+        # Assuming there's only one question paper per course for simplicity
+        file_path = question_paper.file.path
+        # Open the file and serve it as a download response
+        response = FileResponse(open(file_path, 'rb'))
+        # Set the content type header to force the browser to download the file
+        response['Content-Disposition'] = f'attachment; filename="{question_paper.title}.pdf"'
+        return response
+    else:
+        # Handle the case where no question paper is found
+        return HttpResponse("No question paper found for this course.", status=404)
 
 def signup_login(request):
     return render(request, "signup_login.html")
