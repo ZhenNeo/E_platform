@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Course Catalog</title>
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+</head>
+<body>
+
+<!-- Header -->
+<nav class="navbar navbar-expand-lg navbar-light bg-light">
+    <a class="navbar-brand" href="#">E-Learning</a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav ml-auto">
+            <li class="nav-item">
+                <a class="nav-link" href="#">Courses</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'enrolled_course' %}">Enrolled Courses</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'mentorship_page' %}">Personal Mentorship</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'logout' %}">Logout</a>
+            </li>
+        </ul>
+    </div>
+</nav>
+
+<!-- Course Catalog -->
+<div class="container mt-5">
+    <h2>Course Catalog</h2>
+    <!-- Search Bar -->
+    <div class="input-group mb-3">
+        <input type="text" class="form-control" id="searchInput" placeholder="Search courses..." aria-label="Search courses" aria-describedby="button-addon2">
+        <div class="input-group-append">
+            <button class="btn btn-outline-secondary" type="button" id="searchButton">Search</button>
+        </div>
+    </div>
+    <!-- Course Cards -->
+    <div class="row" id="courseList">
+        {% for course in courses %}
+        <div class="col-md-4 mb-4">
+            <div class="card">
+                <img src="{{ course.image.url }}" class="card-img-top" alt="{{ course.title }}">
+                <div class="card-body">
+                    <h5 class="card-title">{{ course.title }}</h5>
+                    <p class="card-text">{{ course.description }}</p>
+                    <p class="card-text"><strong>Price: ${{ course.price }}</strong></p>
+                    <a href="{% url 'view_course_details' course.id %}" class="btn btn-primary">View Details</a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+<br>
+    <br>
+    <br>
+    <br>
+    <br>
+    <br>
+
+</div>
+
+
+
+<!-- Bootstrap JS (Optional - Only if needed for JavaScript functionality) -->
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+<!-- Custom JavaScript for search functionality -->
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        document.getElementById("searchButton").addEventListener("click", function() {
+            var searchInput = document.getElementById("searchInput").value.toLowerCase();
+            var courseCards = document.querySelectorAll("#courseList .card");
+            courseCards.forEach(function(card) {
+                var title = card.querySelector(".card-title").textContent.toLowerCase();
+                var description = card.querySelector(".card-text").textContent.toLowerCase();
+                if (title.includes(searchInput) || description.includes(searchInput)) {
+                    card.style.display = "block";
+                } else {
+                    card.style.display = "none";
+                }
+            });
+        });
+    });
+</script>
+
+</body>
+</html>
