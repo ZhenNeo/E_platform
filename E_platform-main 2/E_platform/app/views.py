@@ -129,7 +129,8 @@ def course_catalog(request):
 
 def view_course_details(request, course_id):
     course = Course.objects.get(id=course_id)
-    return render(request, 'view_course_details.html', {'course': course})
+    weeks = Week.objects.filter(course_id=course_id).order_by('number')
+    return render(request, 'view_course_details.html', {'course': course, 'weeks': weeks})
 
 
 def start_course(request, course_id):

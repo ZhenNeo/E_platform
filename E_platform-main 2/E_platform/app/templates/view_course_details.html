@@ -90,6 +90,15 @@
         </video>
     </div>
     {% endif %}
+    <select name="video">
+        {% for week in weeks %}
+        <optgroup label="{{ week }}">
+            {% for topic in week.topics.all %}
+            <option value="{{ topic.video.url }}">{{ topic.title }}</option>
+            {% endfor %}
+        </optgroup>
+        {% endfor %}
+    </select>
 
     <form method="post" action="{% url 'course_payment' course.id %}">
         {% csrf_token %}
