@@ -15,9 +15,20 @@ from django.http import HttpResponseBadRequest, FileResponse, HttpResponse
 from django.http import JsonResponse
 from .models import Post, Comment
 
+@login_required
+def certificate(request):
+    user = Student.objects.get(user=request.user)
+    certificates = Certificate.objects.filter(user=user)
+    courses_with_certificates = {}
 
-# Create your views here.
+    # Group certificates by course
+    for certificate in certificates:
+        if certificate.course not in courses_with_certificates:
+            courses_with_certificates[certificate.course] = []
+        courses_with_certificates[certificate.course].append(certificate)
 
+    return render(request, 'certificates.html', {'courses_with_certificates': courses_with_certificates})
+    
 # ---------------------------------------------------------------------------
 # Login view
 # ---------------------------------------------------------------------------
@@ -129,8 +140,7 @@ def course_catalog(request):
 
 def view_course_details(request, course_id):
     course = Course.objects.get(id=course_id)
-    weeks = Week.objects.filter(course_id=course_id).order_by('number')
-    return render(request, 'view_course_details.html', {'course': course, 'weeks': weeks})
+    return render(request, 'view_course_details.html', {'course': course})
 
 
 def start_course(request, course_id):

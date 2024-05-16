@@ -7,7 +7,7 @@ urlpatterns = [
     path('student-signup/',student_signup,name='student-signup'),
     path('verify-otp',verify_otp,name='verify_otp'),
     path('logout/', logout_user, name='logout'),
-
+    
     path('course_catalog', course_catalog, name='course_catalog'),
     path('mentorship_page/', homepage, name='mentorship_page'),
     path('paymenthandler/', paymenthandler, name='paymenthandler'),
@@ -27,5 +27,6 @@ urlpatterns = [
     path('dislike_post/<int:post_id>/',dislike_post, name='dislike_post'),
     path('like_comment/<int:comment_id>/', like_comment, name='like_comment'),
     path('dislike_comment/<int:comment_id>/', dislike_comment, name='dislike_comment'),
+    path('certificate/', certificate, name='certificates')
 
 ]

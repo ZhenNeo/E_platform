@@ -71,8 +71,7 @@ class Topic(models.Model):
         return self.title
 
 
-
-
+        
 class Enrollment(models.Model):
     course = models.ForeignKey(Course, on_delete=models.CASCADE)
     user = models.ForeignKey(Student, on_delete=models.CASCADE, null=True, blank=True)
@@ -120,3 +119,13 @@ class Comment(models.Model):
     timestamp = models.DateTimeField(auto_now_add=True)
     likes = models.IntegerField(default=0)
     dislikes = models.IntegerField(default=0)
+
+
+class Certificate(models.Model):
+    user = models.ForeignKey(Student, on_delete=models.CASCADE)
+    course = models.ForeignKey(Course, on_delete=models.CASCADE)
+    completion_date = models.DateTimeField(auto_now_add=True)
+    certificate_image = models.ImageField(upload_to='staticfiles/certificates/')
+
+    def __str__(self):
+        return f"{self.user.Full_Name}'s Certificate for {self.course.title}"
