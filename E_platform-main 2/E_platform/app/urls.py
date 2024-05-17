@@ -27,6 +27,7 @@ urlpatterns = [
     path('dislike_post/<int:post_id>/',dislike_post, name='dislike_post'),
     path('like_comment/<int:comment_id>/', like_comment, name='like_comment'),
     path('dislike_comment/<int:comment_id>/', dislike_comment, name='dislike_comment'),
-    path('certificate/', certificate, name='certificates')
+    path('certificate/', certificate, name='certificates'),
+    path('my_courses', all_course_progress, name='my-courses'),
 
 ]

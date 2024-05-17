@@ -28,7 +28,42 @@ def certificate(request):
         courses_with_certificates[certificate.course].append(certificate)
 
     return render(request, 'certificates.html', {'courses_with_certificates': courses_with_certificates})
+
+@login_required
+def mark_topic_watched(request, topic_id):
+    topic = Topic.objects.get(id=topic_id)
+    user = Student.objects.get(user=request.user)
+    topic.watched_by_users.add(user)
     
+
+@login_required
+def all_course_progress(request):
+    student = Student.objects.get(user=request.user)
+    enrollments = Enrollment.objects.filter(user=student)
+    
+    course_progress_data = []
+    
+    for enrollment in enrollments:
+        course = enrollment.course
+        total_topics = sum(week.topics.count() for week in course.weeks.all())
+        watched_topics = sum(topic.watched_by_users.filter(user=student.user).count() for week in course.weeks.all() for topic in week.topics.all())
+
+        if total_topics > 0:
+            progress_percentage = (watched_topics / total_topics) * 100
+        else:
+            progress_percentage = 0
+
+        course_progress_data.append({
+            'course': course,
+            'total_topics': total_topics,
+            'watched_topics': watched_topics,
+            'progress_percentage': progress_percentage,
+        })
+    print(course_progress_data)
+    context = {
+        'course_progress_data': course_progress_data,
+    }
+    return render(request, 'my_courses.html', context)
 # ---------------------------------------------------------------------------
 # Login view
 # ---------------------------------------------------------------------------

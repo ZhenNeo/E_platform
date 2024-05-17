@@ -66,12 +66,17 @@ class Topic(models.Model):
     week = models.ForeignKey(Week, related_name='topics', on_delete=models.CASCADE)
     title = models.CharField(max_length=100)
     video = models.FileField(upload_to='staticfiles/topic_videos/', null=True, blank=True)
+    watched_by_users = models.ManyToManyField(Student, blank=True)
 
     def __str__(self):
         return self.title
 
-
+class StudentCourseProgress(models.Model):
+    student = models.ForeignKey(Student, on_delete=models.CASCADE)
+    course = models.ForeignKey(Course, on_delete=models.CASCADE)
+    completed_weeks = models.ManyToManyField(Week, blank=True)
         
+
 class Enrollment(models.Model):
     course = models.ForeignKey(Course, on_delete=models.CASCADE)
     user = models.ForeignKey(Student, on_delete=models.CASCADE, null=True, blank=True)
