@@ -48,7 +48,7 @@ def all_course_progress(request):
         total_topics = sum(week.topics.count() for week in course.weeks.all())
         watched_topics = sum(topic.watched_by_users.filter(id=student.id).exists() for week in course.weeks.all() for topic in week.topics.all())
 
-        if total_topics > 0:
+        if watched_topics > 0:
             progress_percentage = round((watched_topics / total_topics) * 100)
         else:
             progress_percentage = 0
