@@ -34,8 +34,8 @@ def mark_topic_watched(request, topic_id):
     topic = Topic.objects.get(id=topic_id)
     user = Student.objects.get(user=request.user)
     topic.watched_by_users.add(user)
+    return redirect(topic.video.url)
     
-
 @login_required
 def all_course_progress(request):
     student = Student.objects.get(user=request.user)
@@ -46,10 +46,10 @@ def all_course_progress(request):
     for enrollment in enrollments:
         course = enrollment.course
         total_topics = sum(week.topics.count() for week in course.weeks.all())
-        watched_topics = sum(topic.watched_by_users.filter(user=student.user).count() for week in course.weeks.all() for topic in week.topics.all())
+        watched_topics = sum(topic.watched_by_users.filter(id=student.id).exists() for week in course.weeks.all() for topic in week.topics.all())
 
         if total_topics > 0:
-            progress_percentage = (watched_topics / total_topics) * 100
+            progress_percentage = round((watched_topics / total_topics) * 100)
         else:
             progress_percentage = 0
 
@@ -59,11 +59,12 @@ def all_course_progress(request):
             'watched_topics': watched_topics,
             'progress_percentage': progress_percentage,
         })
-    print(course_progress_data)
+
     context = {
         'course_progress_data': course_progress_data,
     }
     return render(request, 'my_courses.html', context)
+
 # ---------------------------------------------------------------------------
 # Login view
 # ---------------------------------------------------------------------------
@@ -179,8 +180,8 @@ def view_course_details(request, course_id):
 
 
 def start_course(request, course_id):
-    course = Course.objects.get(id=course_id)
-    return render(request, 'start_course.html', {'course': course})
+    weeks = Week.objects.filter(course_id=course_id).order_by('number')
+    return render(request, 'start_course.html', {'weeks': weeks})
 
 
 @login_required
