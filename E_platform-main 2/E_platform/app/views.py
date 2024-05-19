@@ -60,8 +60,15 @@ def all_course_progress(request):
             'progress_percentage': progress_percentage,
         })
 
+    filter_status = request.GET.get('status', 'in_progress')
+    if filter_status == 'completed':
+        filtered_courses = [data for data in course_progress_data if data['progress_percentage'] == 100]
+    else:
+        filtered_courses = [data for data in course_progress_data if data['progress_percentage'] < 100]
+
     context = {
-        'course_progress_data': course_progress_data,
+        'course_progress_data': filtered_courses,
+        'filter_status': filter_status,
     }
     return render(request, 'my_courses.html', context)
 

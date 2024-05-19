@@ -1,3 +1,4 @@
+<!-- templates/my_courses.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -39,6 +40,12 @@
 <div class="container mt-5">
     <h2>My Courses</h2>
 
+    <!-- Filter Buttons -->
+    <div class="btn-group mb-4" role="group" aria-label="Course Progress Filters">
+        <a href="{% url 'my-courses' %}?status=in_progress" class="btn btn-primary {% if filter_status == 'in_progress' %}active{% endif %}">In Progress</a>
+        <a href="{% url 'my-courses' %}?status=completed" class="btn btn-secondary {% if filter_status == 'completed' %}active{% endif %}">Completed</a>
+    </div>
+
     <!-- Display Courses -->
     <div class="row">
         {% for course_progress in course_progress_data %}
@@ -53,6 +60,8 @@
                     </div>
                 </div>
             </div>
+        {% empty %}
+            <p>No courses found.</p>
         {% endfor %}
     </div>
 </div>
