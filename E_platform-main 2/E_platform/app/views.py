@@ -65,6 +65,35 @@ def all_course_progress(request):
     }
     return render(request, 'my_courses.html', context)
 
+
+def question_papers(request):
+    selected_year = request.GET.get('year')
+    if selected_year:
+        question_papers = QuestionPaper.objects.filter(year=selected_year)
+    else:
+        question_papers = QuestionPaper.objects.all()
+
+    # Get distinct years
+    years = QuestionPaper.objects.values_list('year', flat=True).distinct().order_by('year')
+
+    context = {
+        'question_papers': question_papers,
+        'years': years,
+        'selected_year': selected_year,
+    }
+
+    return render(request, 'question_paper.html', context)
+
+def view_question_paper(request, pk):
+    question_paper = get_object_or_404(QuestionPaper, pk=pk)
+    return FileResponse(question_paper.file.open(), content_type='application/pdf')
+
+def download_question_paper(request, pk):
+    question_paper = get_object_or_404(QuestionPaper, pk=pk)
+    response = FileResponse(question_paper.file.open(), content_type='application/pdf')
+    response['Content-Disposition'] = f'attachment; filename="{question_paper.title}.pdf"'
+    return response
+
 # ---------------------------------------------------------------------------
 # Login view
 # ---------------------------------------------------------------------------

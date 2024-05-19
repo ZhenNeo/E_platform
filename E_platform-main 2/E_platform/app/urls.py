@@ -30,5 +30,8 @@ urlpatterns = [
     path('certificate/', certificate, name='certificates'),
     path('my_courses', all_course_progress, name='my-courses'),
     path('mark_topic_watched/<int:topic_id>/', mark_topic_watched, name='mark_topic_watched'),
+    path('question-papers', question_papers, name='question_papers'),
+    path('question-paper/<int:pk>/', view_question_paper, name='view_question_paper'),
+    path('question-paper/<int:pk>/download/', download_question_paper, name='download_question_paper'),
 
 ]

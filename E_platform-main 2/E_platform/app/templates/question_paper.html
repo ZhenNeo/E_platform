@@ -1,0 +1,51 @@
+<!-- templates/question_papers_by_year.html -->
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Question Papers by Year</title>
+</head>
+<body>
+    <h1>Question Papers</h1>
+
+    <div>
+        <h2>Select Year:</h2>
+        <div>
+            <a href="{% url 'question_papers' %}" class="year-button {% if not selected_year %}active{% endif %}">All Years</a>
+            {% for year in years %}
+                <a href="{% url 'question_papers' %}?year={{ year }}" class="year-button {% if selected_year|default:'' == year|stringformat:"s" %}active{% endif %}">{{ year }}</a>
+            {% endfor %}
+        </div>
+    </div>
+
+    <ul>
+        {% for paper in question_papers %}
+            <li>
+                <a href="{% url 'view_question_paper' paper.pk %}" target="_blank">{{ paper.title }} - {{paper.subject}} ({{ paper.year }})</a>
+                | <a href="{% url 'download_question_paper' paper.pk %}">Download PDF</a>
+            </li>
+        {% empty %}
+            <li>No question papers available for the selected year.</li>
+        {% endfor %}
+    </ul>
+
+    <style>
+        .year-button {
+            margin: 5px;
+            padding: 10px 15px;
+            background-color: #f0f0f0;
+            border: 1px solid #ccc;
+            text-decoration: none;
+            color: #333;
+            border-radius: 5px;
+        }
+        .year-button.active {
+            background-color: #007bff;
+            color: #fff;
+        }
+        .year-button:hover {
+            background-color: #0056b3;
+            color: #fff;
+        }
+    </style>
+</body>
+</html>
