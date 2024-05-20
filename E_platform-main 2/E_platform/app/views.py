@@ -74,19 +74,18 @@ def all_course_progress(request):
 
 
 def question_papers(request):
-    selected_year = request.GET.get('year')
-    if selected_year:
-        question_papers = QuestionPaper.objects.filter(year=selected_year)
-    else:
-        question_papers = QuestionPaper.objects.all()
+    selected_grade = request.GET.get('grade')
 
-    # Get distinct years
-    years = QuestionPaper.objects.values_list('year', flat=True).distinct().order_by('year')
+    question_papers = QuestionPaper.objects.all()
+    if selected_grade:
+        question_papers = question_papers.filter(grade=selected_grade)
+
+    grades = QuestionPaper.objects.values_list('grade', flat=True).distinct()
 
     context = {
         'question_papers': question_papers,
-        'years': years,
-        'selected_year': selected_year,
+        'selected_grade': selected_grade,
+        'grades': sorted(grades)
     }
 
     return render(request, 'question_paper.html', context)
