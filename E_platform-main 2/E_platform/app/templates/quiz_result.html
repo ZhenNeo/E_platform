@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ quiz.title }} - Results</title>
+</head>
+<body>
+    <h1>{{ quiz.title }}</h1>
+    <p>{{ quiz.description }}</p>
+    <p><strong>Score:</strong> {{ quiz_result.score }}%</p>
+    <p><strong>Total Questions:</strong> {{ quiz_result.total_questions }}</p>
+    <ul>
+        {% for question in questions %}
+            <li>
+                <h3>{{ question.question_no }}. {{ question.question_text }}</h3>
+                <p>
+                    <label>
+                        <input type="radio" name="question_{{ question.id }}" value="1" disabled
+                               {% if selected_answers|get_item:question.id == '1' %}checked{% endif %}>
+                        {{ question.option1 }}
+                    </label><br>
+                    <label>
+                        <input type="radio" name="question_{{ question.id }}" value="2" disabled
+                               {% if selected_answers|get_item:question.id == '2' %}checked{% endif %}>
+                        {{ question.option2 }}
+                    </label><br>
+                    <label>
+                        <input type="radio" name="question_{{ question.id }}" value="3" disabled
+                               {% if selected_answers|get_item:question.id == '3' %}checked{% endif %}>
+                        {{ question.option3 }}
+                    </label><br>
+                    <label>
+                        <input type="radio" name="question_{{ question.id }}" value="4" disabled
+                               {% if selected_answers|get_item:question.id == '4' %}checked{% endif %}>
+                        {{ question.option4 }}
+                    </label>
+                </p>
+                <p>
+                    <strong>Answer Status:</strong>
+                    {% if selected_answers|get_item:question.id == question.correct_option %}
+                        Correct
+                    {% else %}
+                        Incorrect
+                    {% endif %}
+                </p>
+                <p><strong>Reason:</strong> {{ question.reason }}</p>
+            </li>
+        {% endfor %}
+    </ul>
+</body>
+</html>

@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
+from django.utils import timezone
 
 
 class CustomeUser(AbstractUser):
@@ -70,6 +71,59 @@ class Topic(models.Model):
 
     def __str__(self):
         return self.title
+    
+class Quiz(models.Model):
+    course = models.ForeignKey(Course, related_name='quizzes', on_delete=models.CASCADE)
+    topic = models.ForeignKey(Topic, related_name='quizzes', on_delete=models.CASCADE)
+    title = models.CharField(max_length=100)
+    weight = models.FloatField(default=0)
+    description = models.TextField(blank=True, null=True)
+    due_date = models.DateTimeField(default=timezone.now)
+
+    def __str__(self):
+        return self.title
+
+
+class QuizQuestion(models.Model):
+    quiz = models.ForeignKey(Quiz, related_name='quiz_questions', on_delete=models.CASCADE)
+    question_no = models.IntegerField()
+    question_text = models.TextField(max_length=255)
+    option1 = models.CharField(max_length=255)
+    option2 = models.CharField(max_length=255)
+    option3 = models.CharField(max_length=255)
+    option4 = models.CharField(max_length=255)
+    correct_option = models.CharField(
+        max_length=2,
+        choices=[
+            ('1', 'Option 1'),
+            ('2', 'Option 2'),
+            ('3', 'Option 3'),
+            ('4', 'Option 4')
+        ]
+    )
+    reason = models.TextField()
+
+    def __str__(self):
+        return f"{self.quiz.course} - {self.quiz.topic}"  
+
+class QuizResult(models.Model):
+    student = models.ForeignKey(Student, related_name='quiz_results', on_delete=models.CASCADE)
+    quiz = models.ForeignKey(Quiz, related_name='results', on_delete=models.CASCADE)
+    score = models.FloatField()
+    total_questions = models.IntegerField()
+    completed_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.student.user.username} - {self.quiz.title} - {self.score}/{self.total_questions}"
+    
+class SelectedAnswer(models.Model):
+    student = models.ForeignKey(Student, related_name='selected_answers', on_delete=models.CASCADE)
+    quiz = models.ForeignKey(Quiz, related_name='selected_answers', on_delete=models.CASCADE)
+    question = models.ForeignKey(QuizQuestion, related_name='selected_answers', on_delete=models.CASCADE)
+    selected_option = models.CharField(max_length=2)
+
+    def __str__(self):
+        return f"{self.student.user.username} - {self.quiz.title} - Question {self.question.question_no} - Option {self.selected_option}"
 
 class StudentCourseProgress(models.Model):
     student = models.ForeignKey(Student, on_delete=models.CASCADE)
@@ -110,7 +164,7 @@ class QuestionPaper(models.Model):
         return self.title
 
 
-class Post(models.Model):
+class Post(models.Model): 
     user = models.ForeignKey(Student, on_delete=models.CASCADE, null=True, blank=True)
     content = models.TextField()
     timestamp = models.DateTimeField(auto_now_add=True)

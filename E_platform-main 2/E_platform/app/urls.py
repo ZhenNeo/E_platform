@@ -18,7 +18,7 @@ urlpatterns = [
     path('enrolled-courses/<int:course_id>/start-course', start_course, name='start_course'),
     path('start-course/<int:course_id>/previous_question_papers/', previous_question_papers,
          name='previous_question_papers'),
-
+    
     path('community/',community_platform, name='community_platform'),
     path('community/add_post/',add_post, name='add_post'),
     path('community/add_comment/<int:post_id>/',add_comment, name='add_comment'),
@@ -30,9 +30,12 @@ urlpatterns = [
     
     path('certificate/', certificate, name='certificates'),
     path('my_courses', all_course_progress, name='my-courses'),
-    path('mark_topic_watched/<int:topic_id>/', mark_topic_watched, name='mark_topic_watched'),
     path('question-papers', question_papers, name='question_papers'),
     path('question-paper/<int:pk>/', view_question_paper, name='view_question_paper'),
     path('question-paper/<int:pk>/download/', download_question_paper, name='download_question_paper'),
-
+    path('course/<int:course_id>/topic/<int:topic_id>/', start_course, name='mark_topic_watched'),
+    path('quiz/<int:quiz_id>/', display_quiz, name='display_quiz'),
+    
+  
 ]
+

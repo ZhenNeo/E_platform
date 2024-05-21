@@ -1,128 +1,83 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>{{ course.title }} Details</title>
-    <!-- Bootstrap CSS -->
-    <link
-      rel="stylesheet"
-      href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"
-    />
+<head>
+    <meta charset="UTF-8">
+    <title>{{ course.title }}</title>
     <style>
-      .video-container {
-        position: relative;
-        width: 80%; /* Adjust the width of the video container */
-        margin: 0 auto; /* Center the container horizontally */
-        padding-top: 56.25%; /* 16:9 Aspect Ratio (responsive) */
-        overflow: hidden;
-      }
-
-      .video-container video {
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-      }
-
-      .week-videos {
+        .video-player {
+            width: 100%;
+            max-width: 800px;
+            height: 450px;
+        }
+        .weeks-list, .topics-list, .quizzes-list {
+            list-style-type: none;
+        }
+        .weeks-list li, .topics-list li, .quizzes-list li {
+            cursor: pointer;
+            margin: 5px 0;
+            color: blue;
+            text-decoration: underline;
+        }
+        .topics-list {
             display: none;
         }
-        .week-expanded .week-videos {
-            display: block;
-        }
     </style>
-  </head>
-  <body>
-    <!-- Header -->
-    <nav class="navbar navbar-expand-lg navbar-light bg-light">
-      <a class="navbar-brand" href="#">E-Learning</a>
-      <button
-        class="navbar-toggler"
-        type="button"
-        data-toggle="collapse"
-        data-target="#navbarNav"
-        aria-controls="navbarNav"
-        aria-expanded="false"
-        aria-label="Toggle navigation"
-      >
-        <span class="navbar-toggler-icon"></span>
-      </button>
-      <div class="collapse navbar-collapse" id="navbarNav">
-        <ul class="navbar-nav ml-auto">
-          <li class="nav-item">
-            <a class="nav-link" href="{% url 'course_catalog' %}">Courses</a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" href="{% url 'enrolled_course' %}"
-              >Enrolled Courses</a
-            >
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" href="{% url 'community_platform' %}"
-              >Community</a
-            >
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" href="{% url 'mentorship_page' %}"
-              >Personal Mentorship</a
-            >
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" href="{% url 'logout' %}">Logout</a>
-          </li>
-        </ul>
-      </div>
-    </nav>
-    <div class="container mt-5">
-        <!-- Course title and description -->
-        <h2>{{ course.title }}</h2>
-        <p>{{ course.description }}</p>
-        <p>{{ course.roadmap }}</p>
-    
-        <!-- Weeks and Topics -->
-        <div class="row">
-            <div class="col-md-4">
-                <div class="list-group" id="weeks-list">
-                    {% for week in weeks %}
-                    <div class="week-item" id="week-{{ week.number }}">
-                        <a href="javascript:void(0);" class="list-group-item list-group-item-action" data-week="{{ week.number }}">
-                            Week {{ week.number }}: {{ week.title }}
-                        </a>
-                        <div class="week-videos">
-                            <h4>Week {{ week.number }}: {{ week.title }}</h4>
-                            {% for topic in week.topics.all %}
-                            <div>
-                                <a href="{% url 'mark_topic_watched' topic.id %}" target="_blank">
-                                    {{ topic.title }}
-                                </a>
-                            </div>
-                            {% endfor %}
-                        </div>
-                    </div>
-                    {% endfor %}
-                </div>
-            </div>
-        </div>
-    </div>
-    
-
-    <!-- Bootstrap JS (Optional - Only if needed for JavaScript functionality) -->
-    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
     <script>
-        document.addEventListener("DOMContentLoaded", function() {
-            const weekItems = document.querySelectorAll('.week-item');
-            
-            weekItems.forEach(item => {
-                const link = item.querySelector('.list-group-item');
-                link.addEventListener('click', function() {
-                    item.classList.toggle('week-expanded');
+        function loadVideo(topicId, videoUrl) {
+            const videoPlayer = document.getElementById('video-player');
+            videoPlayer.src = videoUrl;
+
+            fetch(`/course/{{ course.id }}/topic/${topicId}/`)
+                .then(response => response.json())
+                .then(data => {
+                    console.log(data.message);
+                    if (data.unlocked_quizzes) {
+                        const quizzesList = document.getElementById('quizzes-list');
+                        quizzesList.innerHTML = '';  // Clear the existing list
+                        data.unlocked_quizzes.forEach(quiz => {
+                            const li = document.createElement('li');
+                            const link = document.createElement('a');
+                            link.href = `/quiz/${quiz.id}/`;
+                            link.textContent = quiz.title;
+                            li.appendChild(link);
+                            quizzesList.appendChild(li);
+                        });
+                    }
                 });
+        }
+
+        function showTopics(weekId) {
+            document.querySelectorAll('.topics-list').forEach(function(list) {
+                list.style.display = 'none';
             });
-        });
+            document.getElementById('topics-' + weekId).style.display = 'block';
+        }
     </script>
-  </body>
+</head>
+<body>
+    <h1>{{ course.title }}</h1>
+    <div>
+        <video id="video-player" class="video-player" controls>
+            Your browser does not support the video tag.
+        </video>
+    </div>
+    <ul class="weeks-list">
+        {% for week in weeks %}
+            <li onclick="showTopics({{ week.id }})">{{ week.title }}</li>
+            <ul id="topics-{{ week.id }}" class="topics-list">
+                {% for topic in week.topics.all %}
+                    <li onclick="loadVideo({{ topic.id }}, '{{ topic.video.url|escapejs }}')">{{ topic.title }}</li>
+                {% endfor %}
+            </ul>
+        {% endfor %}
+    </ul>
+    <div>
+        <h2>Unlocked Quizzes</h2>
+        <ul id="quizzes-list" class="quizzes-list">
+            {% for quiz in quizzes %}
+                <li><a href="{% url 'display_quiz' quiz.id %}">{{ quiz.title }}</a></li>
+            {% endfor %}
+        </ul>
+    </div>
+</body>
 </html>

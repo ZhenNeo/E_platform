@@ -14,6 +14,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.http import HttpResponseBadRequest, FileResponse, HttpResponse
 from django.http import JsonResponse
 from .models import Post, Comment
+from django.utils import timezone
 
 @login_required
 def certificate(request):
@@ -29,12 +30,7 @@ def certificate(request):
 
     return render(request, 'certificates.html', {'courses_with_certificates': courses_with_certificates})
 
-@login_required
-def mark_topic_watched(request, topic_id):
-    topic = Topic.objects.get(id=topic_id)
-    user = Student.objects.get(user=request.user)
-    topic.watched_by_users.add(user)
-    return redirect(topic.video.url)
+
     
 @login_required
 def all_course_progress(request):
@@ -48,11 +44,11 @@ def all_course_progress(request):
         total_topics = sum(week.topics.count() for week in course.weeks.all())
         watched_topics = sum(topic.watched_by_users.filter(id=student.id).exists() for week in course.weeks.all() for topic in week.topics.all())
 
-        if watched_topics > 0:
+        if total_topics > 0:
             progress_percentage = round((watched_topics / total_topics) * 100)
         else:
             progress_percentage = 0
-
+        
         course_progress_data.append({
             'course': course,
             'total_topics': total_topics,
@@ -70,6 +66,7 @@ def all_course_progress(request):
         'course_progress_data': filtered_courses,
         'filter_status': filter_status,
     }
+    
     return render(request, 'my_courses.html', context)
 
 
@@ -100,6 +97,94 @@ def download_question_paper(request, pk):
     response['Content-Disposition'] = f'attachment; filename="{question_paper.title}.pdf"'
     return response
 
+@login_required
+def start_course(request, course_id, topic_id=None):
+    user = Student.objects.get(user=request.user)
+    course = get_object_or_404(Course, id=course_id)
+    
+    # Gather all weeks and topics
+    weeks = Week.objects.filter(course=course).prefetch_related('topics')
+    
+    if topic_id:
+        topic = get_object_or_404(Topic, id=topic_id)
+        topic.watched_by_users.add(user)
+        
+        # Unlock quizzes related to the watched topic
+        unlocked_quizzes = Quiz.objects.filter(topic=topic)
+        return JsonResponse({
+            'message': f"Added {user} to {topic.title}",
+            'unlocked_quizzes': [{'id': q.id, 'title': q.title} for q in unlocked_quizzes]
+        })
+    
+    # Collect all watched topics for the current user
+    watched_topics = Topic.objects.filter(watched_by_users=user, week__course=course)
+    
+    # Collect quizzes related to the watched topics
+    unlocked_quizzes = Quiz.objects.filter(topic__in=watched_topics)
+    
+    return render(request, 'start_course.html', {
+        'course': course,
+        'weeks': weeks,
+        'quizzes': unlocked_quizzes
+    })
+
+
+@login_required
+def display_quiz(request, quiz_id):
+    quiz = get_object_or_404(Quiz, id=quiz_id)
+    questions = quiz.quiz_questions.all().order_by('question_no')
+    student = Student.objects.get(user=request.user)
+
+    if request.method == 'POST':
+        score = 0
+        total_questions = questions.count()
+
+        for question in questions:
+            selected_option = request.POST.get(f'question_{question.id}')
+            if selected_option == question.correct_option:
+                score += 1
+
+            # Save or update the selected answers
+            selected_answer, created = SelectedAnswer.objects.update_or_create(
+                student=student,
+                quiz=quiz,
+                question=question,
+                defaults={'selected_option': selected_option}
+            )
+
+        # Calculate percentage score
+        percentage_score = (score / total_questions) * 100
+
+        # Save or update the quiz result
+        QuizResult.objects.update_or_create(
+            student=student,
+            quiz=quiz,
+            defaults={
+                'score': percentage_score,
+                'total_questions': total_questions,
+                'completed_at': timezone.now()  
+            }
+        )
+
+    return render(request, 'quiz_detail.html', {
+        'quiz': quiz,
+        'questions': questions
+    })
+
+@login_required
+def quiz_result(request, quiz_id):
+    quiz = get_object_or_404(Quiz, id=quiz_id)
+    student = Student.objects.get(user=request.user)
+    questions = quiz.quiz_questions.all().order_by('question_no')
+    quiz_result = get_object_or_404(QuizResult, quiz=quiz, student=student)
+    selected_answers = SelectedAnswer.objects.filter(student=student, quiz=quiz).select_related('question')
+
+    return render(request, 'quiz_result.html', {
+        'quiz': quiz,
+        'questions': questions,
+        'quiz_result': quiz_result,
+        'selected_answers': {answer.question.id: answer.selected_option for answer in selected_answers}
+    })
 # ---------------------------------------------------------------------------
 # Login view
 # ---------------------------------------------------------------------------
@@ -214,10 +299,6 @@ def view_course_details(request, course_id):
     return render(request, 'view_course_details.html', {'course': course})
 
 
-def start_course(request, course_id):
-    weeks = Week.objects.filter(course_id=course_id).order_by('number')
-    return render(request, 'start_course.html', {'weeks': weeks})
-
 
 @login_required
 def enroll_course(request, course_id):
@@ -267,23 +348,6 @@ def enrolled_course(request):
         enrolled_courses = []
 
     return render(request, 'enrolled_course.html', {'enrolled_courses': enrolled_courses})
-
-
-def previous_question_papers(request, course_id):
-    course = get_object_or_404(Course, pk=course_id)
-    question_paper = QuestionPaper.objects.filter(course=course).first()
-
-    if question_paper:
-        # Assuming there's only one question paper per course for simplicity
-        file_path = question_paper.file.path
-        # Open the file and serve it as a download response
-        response = FileResponse(open(file_path, 'rb'))
-        # Set the content type header to force the browser to download the file
-        response['Content-Disposition'] = f'attachment; filename="{question_paper.title}.pdf"'
-        return response
-    else:
-        # Handle the case where no question paper is found
-        return HttpResponse("No question paper found for this course.", status=404)
 
 
 # authorize razorpay client with API Keys.
@@ -390,6 +454,21 @@ def add_comment(request, post_id):
         return redirect('community_platform')
     return render(request, 'add_comment.html', {'post': post})
 
+def previous_question_papers(request, course_id):
+    course = get_object_or_404(Course, pk=course_id)
+    question_paper = QuestionPaper.objects.filter(course=course).first()
+
+    if question_paper:
+        # Assuming there's only one question paper per course for simplicity
+        file_path = question_paper.file.path
+        # Open the file and serve it as a download response
+        response = FileResponse(open(file_path, 'rb'))
+        # Set the content type header to force the browser to download the file
+        response['Content-Disposition'] = f'attachment; filename="{question_paper.title}.pdf"'
+        return response
+    else:
+        # Handle the case where no question paper is found
+        return HttpResponse("No question paper found for this course.", status=404)
 
 def like_post(request, post_id):
     post = get_object_or_404(Post, pk=post_id)

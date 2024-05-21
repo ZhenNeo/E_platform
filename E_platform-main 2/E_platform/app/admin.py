@@ -15,3 +15,7 @@ admin.site.register(Week)
 admin.site.register(Topic)
 
 admin.site.register(Certificate)
+
+admin.site.register(Quiz)
+admin.site.register(QuizQuestion)
+admin.site.register(QuizResult)

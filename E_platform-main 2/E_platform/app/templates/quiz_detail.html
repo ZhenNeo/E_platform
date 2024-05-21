@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ quiz.title }}</title>
+</head>
+<body>
+    <h1>{{ quiz.title }}</h1>
+    <p>{{ quiz.description }}</p>
+    
+    <form method="post">
+        {% csrf_token %}
+        <ul>
+            {% for question in questions %}
+                <li>
+                    <h3>{{ question.question_no }}. {{ question.question_text }}</h3>
+                    <label>
+                        <input type="radio" name="question_{{ question.id }}" value="1">
+                        {{ question.option1 }}
+                    </label><br>
+                    <label>
+                        <input type="radio" name="question_{{ question.id }}" value="2">
+                        {{ question.option2 }}
+                    </label><br>
+                    <label>
+                        <input type="radio" name="question_{{ question.id }}" value="3">
+                        {{ question.option3 }}
+                    </label><br>
+                    <label>
+                        <input type="radio" name="question_{{ question.id }}" value="4">
+                        {{ question.option4 }}
+                    </label>
+                </li>
+            {% endfor %}
+        </ul>
+        <button type="submit">Submit</button>
+    </form>
+</body>
+</html>
