@@ -1,30 +1,27 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Certificates</title>
-</head>
-<body>
+  </head>
+  <body>
     <h1>Certificates</h1>
-    
+
     {% if courses_with_certificates %}
-        <ul>
-            {% for course, certificates in courses_with_certificates.items %}
-                <li>
-                    <h2>{{ course.title }}</h2>
-                    <ul>
-                        {% for certificate in certificates %}
-                            <li>
-                                <a href="{{ certificate.certificate_image.url }}" download>Download Certificate</a>
-                            </li>
-                        {% endfor %}
-                    </ul>
-                </li>
-            {% endfor %}
-        </ul>
+    <h1>Your Certificates and Grades</h1>
+    <ul>
+        {% for course, details in courses_with_certificates.items %}
+          <li>
+            <h2>{{ course.title }}</h2>
+            <p>Certificate issued on: {{ details.certificate.completion_date }}</p>
+            <p>Grade: {{ details.grade }}</p>
+            <p><a href="{% url 'download-certificate' details.certificate.id %}" class="btn btn-primary">Download Certificate</a></p>
+          </li>
+        {% endfor %}
+      </ul>
     {% else %}
-        <p>No certificates found.</p>
+    <p>No certificates found.</p>
     {% endif %}
-</body>
+  </body>
 </html>

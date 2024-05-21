@@ -16,6 +16,14 @@ admin.site.register(Topic)
 
 admin.site.register(Certificate)
 
-admin.site.register(Quiz)
-admin.site.register(QuizQuestion)
+class QuestionInline(admin.TabularInline):
+    model = QuizQuestion
+    extra = 1  # Start with one extra form
+    show_change_link = True
+
+@admin.register(Quiz)
+class QuizAdmin(admin.ModelAdmin):
+    inlines = [QuestionInline]
+
 admin.site.register(QuizResult)
+admin.site.register(Grade)

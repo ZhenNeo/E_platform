@@ -12,24 +12,10 @@ import razorpay
 from django.conf import settings
 from django.views.decorators.csrf import csrf_exempt
 from django.http import HttpResponseBadRequest, FileResponse, HttpResponse
-from django.http import JsonResponse
+from django.http import JsonResponse, Http404
 from .models import Post, Comment
 from django.utils import timezone
-
-@login_required
-def certificate(request):
-    user = Student.objects.get(user=request.user)
-    certificates = Certificate.objects.filter(user=user)
-    courses_with_certificates = {}
-
-    # Group certificates by course
-    for certificate in certificates:
-        if certificate.course not in courses_with_certificates:
-            courses_with_certificates[certificate.course] = []
-        courses_with_certificates[certificate.course].append(certificate)
-
-    return render(request, 'certificates.html', {'courses_with_certificates': courses_with_certificates})
-
+from django.db.models import Sum, F
 
     
 @login_required
@@ -152,15 +138,12 @@ def display_quiz(request, quiz_id):
                 defaults={'selected_option': selected_option}
             )
 
-        # Calculate percentage score
-        percentage_score = (score / total_questions) * 100
-
         # Save or update the quiz result
         QuizResult.objects.update_or_create(
             student=student,
             quiz=quiz,
             defaults={
-                'score': percentage_score,
+                'score': score,
                 'total_questions': total_questions,
                 'completed_at': timezone.now()  
             }
@@ -179,12 +162,90 @@ def quiz_result(request, quiz_id):
     quiz_result = get_object_or_404(QuizResult, quiz=quiz, student=student)
     selected_answers = SelectedAnswer.objects.filter(student=student, quiz=quiz).select_related('question')
 
+    # Calculate percentage score
+    total_questions = questions.count()
+    percentage_score = round((quiz_result.score / total_questions) * 100, 2)
+
     return render(request, 'quiz_result.html', {
         'quiz': quiz,
         'questions': questions,
         'quiz_result': quiz_result,
-        'selected_answers': {answer.question.id: answer.selected_option for answer in selected_answers}
+        'selected_answers': selected_answers,
+        'percentage_score': percentage_score,  # Pass percentage score to the template
     })
+
+
+def calculate_grade_for_student(student):
+    courses = Course.objects.filter(quizzes__results__student=student).distinct()
+
+    for course in courses:
+        quizzes = Quiz.objects.filter(course=course)
+        total_weighted_score = 0.0
+
+        for quiz in quizzes:
+            quiz_results = QuizResult.objects.filter(student=student, quiz=quiz)
+            if quiz_results.exists():
+                quiz_result = quiz_results.latest('completed_at')
+                weighted_score = (quiz_result.score / quiz_result.total_questions) * quiz.weight
+                total_weighted_score += weighted_score
+                print(quiz.weight, quiz_result, weighted_score)
+
+        print(total_weighted_score)
+        final_grade = calculate_grade_from_score(total_weighted_score)
+
+        certificate, created = Certificate.objects.get_or_create(user=student, course=course)
+        Grade.objects.update_or_create(
+            certificate=certificate,
+            defaults={'grade': final_grade}
+        )
+
+
+def calculate_grade_from_score(score):
+    if score >= 90:
+        return 'A'
+    elif score >= 80:
+        return 'B'
+    elif score >= 70:
+        return 'C'
+    elif score >= 60:
+        return 'D'
+    else:
+        return 'F'
+
+@login_required
+def download_certificate(request, certificate_id):
+    certificate = get_object_or_404(Certificate, id=certificate_id, user__user=request.user)
+    if not certificate.certificate_image:
+        raise Http404("Certificate image not found")
+    
+    # Open the image file
+    file_path = certificate.certificate_image.path
+    with open(file_path, 'rb') as f:
+        response = HttpResponse(f.read(), content_type='image/jpeg')
+        response['Content-Disposition'] = f'attachment; filename="{certificate.user.Full_Name} certificate {certificate.course.title}.jpg"'
+        return response
+    
+
+@login_required
+def certificate(request):
+    user = Student.objects.get(user=request.user)
+    
+    # Calculate grades for the student
+    calculate_grade_for_student(user)    
+
+    certificates = Certificate.objects.filter(user=user)
+    courses_with_certificates = {}
+
+    # Group certificates by course and include grade
+    for certificate in certificates:
+        grade = Grade.objects.filter(certificate=certificate).first()
+        courses_with_certificates[certificate.course] = {
+            'certificate': certificate,
+            'grade': grade.grade if grade else 'N/A'
+        }
+
+    return render(request, 'certificates.html', {'courses_with_certificates': courses_with_certificates})
+
 # ---------------------------------------------------------------------------
 # Login view
 # ---------------------------------------------------------------------------

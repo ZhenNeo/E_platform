@@ -189,3 +189,10 @@ class Certificate(models.Model):
 
     def __str__(self):
         return f"{self.user.Full_Name}'s Certificate for {self.course.title}"
+    
+class Grade(models.Model):
+    certificate = models.ForeignKey(Certificate, on_delete=models.CASCADE)
+    grade = models.CharField(max_length=2)
+
+    def __str__(self):
+        return f"{self.certificate.course} - {self.grade}"

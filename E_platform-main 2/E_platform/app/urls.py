@@ -29,6 +29,7 @@ urlpatterns = [
     path('dislike_comment/<int:comment_id>/', dislike_comment, name='dislike_comment'),
     
     path('certificate/', certificate, name='certificates'),
+    path('download-certificate/<int:certificate_id>/', download_certificate, name='download-certificate'),
     path('my_courses', all_course_progress, name='my-courses'),
     path('question-papers', question_papers, name='question_papers'),
     path('question-paper/<int:pk>/', view_question_paper, name='view_question_paper'),
