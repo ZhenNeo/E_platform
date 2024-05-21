@@ -77,6 +77,9 @@
             {% for quiz in quizzes %}
                 <li><a href="{% url 'display_quiz' quiz.id %}">{{ quiz.title }}</a></li>
             {% endfor %}
+            {% for quiz in quizzes %}
+            <a href="{% url 'quiz_result' quiz.id %}">View Quiz Result</a>
+            {% endfor %}
         </ul>
     </div>
 </body>

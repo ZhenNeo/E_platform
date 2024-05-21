@@ -2,50 +2,55 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>{{ quiz.title }} - Results</title>
+    <title>Quiz Results</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+        .question {
+            margin-bottom: 20px;
+        }
+        .correct {
+            color: green;
+        }
+        .incorrect {
+            color: red;
+        }
+        .correct-answer {
+            color: blue;
+        }
+    </style>
 </head>
 <body>
-    <h1>{{ quiz.title }}</h1>
-    <p>{{ quiz.description }}</p>
-    <p><strong>Score:</strong> {{ quiz_result.score }}%</p>
-    <p><strong>Total Questions:</strong> {{ quiz_result.total_questions }}</p>
-    <ul>
-        {% for question in questions %}
-            <li>
-                <h3>{{ question.question_no }}. {{ question.question_text }}</h3>
-                <p>
-                    <label>
-                        <input type="radio" name="question_{{ question.id }}" value="1" disabled
-                               {% if selected_answers|get_item:question.id == '1' %}checked{% endif %}>
-                        {{ question.option1 }}
-                    </label><br>
-                    <label>
-                        <input type="radio" name="question_{{ question.id }}" value="2" disabled
-                               {% if selected_answers|get_item:question.id == '2' %}checked{% endif %}>
-                        {{ question.option2 }}
-                    </label><br>
-                    <label>
-                        <input type="radio" name="question_{{ question.id }}" value="3" disabled
-                               {% if selected_answers|get_item:question.id == '3' %}checked{% endif %}>
-                        {{ question.option3 }}
-                    </label><br>
-                    <label>
-                        <input type="radio" name="question_{{ question.id }}" value="4" disabled
-                               {% if selected_answers|get_item:question.id == '4' %}checked{% endif %}>
-                        {{ question.option4 }}
-                    </label>
-                </p>
-                <p>
-                    <strong>Answer Status:</strong>
-                    {% if selected_answers|get_item:question.id == question.correct_option %}
-                        Correct
-                    {% else %}
-                        Incorrect
-                    {% endif %}
-                </p>
-                <p><strong>Reason:</strong> {{ question.reason }}</p>
-            </li>
-        {% endfor %}
-    </ul>
+    <h1>Quiz Results for {{ quiz.title }}</h1>
+    
+    {% for question in questions %}
+    <div class="question">
+        <h3>Question {{ forloop.counter }}: {{ question.text }}</h3>
+        <ul>
+            {% for option in question.options.all %}
+            <li>{{ option.option_text }}</li>
+            {% endfor %}
+        </ul>
+        <p>
+            {% with selected_answers|default:"{}" as selected_answers_dict %}
+            {% with selected_answers_dict|dict_get:question.id as user_answer %}
+            <strong>Your Answer:</strong> {{ user_answer }}
+            {% if user_answer == question.correct_option %}
+            <span class="correct">(Correct)</span>
+            {% else %}
+            <span class="incorrect">(Incorrect)</span><br>
+            <strong>Correct Answer:</strong> <span class="correct-answer">{{ question.correct_option }}</span>
+            {% endif %}
+            {% endwith %}
+            {% endwith %}
+        </p>
+    </div>
+    {% endfor %}
+    
+    <h2>Summary</h2>
+    <p>Total Questions: {{ questions.count }}</p>
+    <p>Correct Answers: {{ quiz_result.correct_answers_count }}</p>
+    <p>Score: {{ quiz_result.score }}%</p>
 </body>
 </html>
