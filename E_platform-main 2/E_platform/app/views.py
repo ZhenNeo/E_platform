@@ -15,7 +15,6 @@ from django.http import HttpResponseBadRequest, FileResponse, HttpResponse
 from django.http import JsonResponse, Http404
 from .models import Post, Comment
 from django.utils import timezone
-from django.db.models import Sum, F
 
     
 @login_required
