@@ -34,7 +34,7 @@ urlpatterns = [
     path('question-papers', question_papers, name='question_papers'),
     path('question-paper/<int:pk>/', view_question_paper, name='view_question_paper'),
     path('question-paper/<int:pk>/download/', download_question_paper, name='download_question_paper'),
-    path('course/<int:course_id>/topic/<int:topic_id>/', start_course, name='mark_topic_watched'),
+    path('course/<int:course_id>/topic/<int:topic_id>/', watch_topic, name='watch_topic'),
     path('quiz/<int:quiz_id>/', display_quiz, name='display_quiz'),
     path('quiz/<int:quiz_id>/result/', quiz_result, name='quiz_result'),
     

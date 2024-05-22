@@ -17,6 +17,13 @@
             <p>Certificate issued on: {{ details.certificate.completion_date }}</p>
             <p>Grade: {{ details.grade }}</p>
             <p><a href="{% url 'download-certificate' details.certificate.id %}" class="btn btn-primary">Download Certificate</a></p>
+            <div>
+                <span>Share:</span>
+                <!-- Replace '#' with actual URLs for sharing -->
+                <a href="https://www.facebook.com/sharer/sharer.php?u=#" target="_blank">Facebook</a>
+                <a href="https://twitter.com/intent/tweet?url=#&text=Check out my certificate from {{ course.title }}!&hashtags=certificate,{{ course.title }}" target="_blank">Twitter</a>
+                <a href="https://www.linkedin.com/shareArticle?url=#&title=Certificate from {{ course.title }}" target="_blank">LinkedIn</a>
+            </div>
           </li>
         {% endfor %}
       </ul>

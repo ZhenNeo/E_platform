@@ -84,34 +84,49 @@ def download_question_paper(request, pk):
     return response
 
 @login_required
-def start_course(request, course_id, topic_id=None):
+def start_course(request, course_id):
     user = Student.objects.get(user=request.user)
     course = get_object_or_404(Course, id=course_id)
     
-    # Gather all weeks and topics
     weeks = Week.objects.filter(course=course).prefetch_related('topics')
     
-    if topic_id:
-        topic = get_object_or_404(Topic, id=topic_id)
-        topic.watched_by_users.add(user)
-        
-        # Unlock quizzes related to the watched topic
-        unlocked_quizzes = Quiz.objects.filter(topic=topic)
-        return JsonResponse({
-            'message': f"Added {user} to {topic.title}",
-            'unlocked_quizzes': [{'id': q.id, 'title': q.title} for q in unlocked_quizzes]
-        })
-    
-    # Collect all watched topics for the current user
     watched_topics = Topic.objects.filter(watched_by_users=user, week__course=course)
-    
-    # Collect quizzes related to the watched topics
     unlocked_quizzes = Quiz.objects.filter(topic__in=watched_topics)
     
+    quizzes_data = []
+    for quiz in unlocked_quizzes:
+        quizzes_data.append({
+            'quiz_id': quiz.id,
+            'video_title': quiz.topic.title,
+            'status': 'Unlocked' if user in quiz.topic.watched_by_users.all() else 'Locked',
+            'due_date': quiz.due_date,
+            'weight': quiz.weight,
+            'score': round(quiz.results.get(student=user).score / quiz.results.get(student=user).total_questions * 100, 2) if quiz.results.filter(student=user).exists() else 'N/A'
+        })
+
     return render(request, 'start_course.html', {
         'course': course,
         'weeks': weeks,
-        'quizzes': unlocked_quizzes
+        'quizzes_data': quizzes_data,
+        'quizzes': unlocked_quizzes,
+    })
+
+def watch_topic(request, course_id, topic_id):
+    user = Student.objects.get(user=request.user)
+    course = get_object_or_404(Course, id=course_id)
+    topic = get_object_or_404(Topic, id=topic_id)
+    
+    topic.watched_by_users.add(user)
+    
+    weeks = Week.objects.filter(course=course).prefetch_related('topics')
+    
+    all_topics = Topic.objects.filter(week__course=course)  # Fetch all topics related to the course
+    
+    return render(request, 'watch_topic.html', {
+        'course': course,
+        'weeks': weeks,
+        'current_topic': topic,
+        'all_topics': all_topics  # Pass all topics to the template
     })
 
 
@@ -188,9 +203,7 @@ def calculate_grade_for_student(student):
                 quiz_result = quiz_results.latest('completed_at')
                 weighted_score = (quiz_result.score / quiz_result.total_questions) * quiz.weight
                 total_weighted_score += weighted_score
-                print(quiz.weight, quiz_result, weighted_score)
 
-        print(total_weighted_score)
         final_grade = calculate_grade_from_score(total_weighted_score)
 
         certificate, created = Certificate.objects.get_or_create(user=student, course=course)

@@ -4,6 +4,9 @@
     <meta charset="UTF-8">
     <title>{{ course.title }}</title>
     <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
         .video-player {
             width: 100%;
             max-width: 800px;
@@ -21,30 +24,47 @@
         .topics-list {
             display: none;
         }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        .grades-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        .grades-table th, .grades-table td {
+            padding: 10px;
+            border: 1px solid #ddd;
+            text-align: left;
+        }
+        .grades-table th {
+            background-color: #f2f2f2;
+        }
+        .grades-table td a {
+            color: inherit;
+            text-decoration: none;
+        }
+        .locked-icon, .unlocked-icon {
+            margin-right: 5px;
+        }
+        .quiz-row {
+            display: flex;
+            align-items: center;
+        }
+        .quiz-info {
+            margin-left: 10px;
+        }
+        .quiz-status.locked {
+            color: gray;
+        }
+        .quiz-status.unlocked {
+            color: green;
+        }
     </style>
     <script>
-        function loadVideo(topicId, videoUrl) {
-            const videoPlayer = document.getElementById('video-player');
-            videoPlayer.src = videoUrl;
-
-            fetch(`/course/{{ course.id }}/topic/${topicId}/`)
-                .then(response => response.json())
-                .then(data => {
-                    console.log(data.message);
-                    if (data.unlocked_quizzes) {
-                        const quizzesList = document.getElementById('quizzes-list');
-                        quizzesList.innerHTML = '';  // Clear the existing list
-                        data.unlocked_quizzes.forEach(quiz => {
-                            const li = document.createElement('li');
-                            const link = document.createElement('a');
-                            link.href = `/quiz/${quiz.id}/`;
-                            link.textContent = quiz.title;
-                            li.appendChild(link);
-                            quizzesList.appendChild(li);
-                        });
-                    }
-                });
-        }
 
         function showTopics(weekId) {
             document.querySelectorAll('.topics-list').forEach(function(list) {
@@ -52,35 +72,80 @@
             });
             document.getElementById('topics-' + weekId).style.display = 'block';
         }
+
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab-content').forEach(function(content) {
+                content.classList.remove('active');
+            });
+            document.getElementById(tabName).classList.add('active');
+        }
     </script>
 </head>
 <body>
     <h1>{{ course.title }}</h1>
     <div>
-        <video id="video-player" class="video-player" controls>
-            Your browser does not support the video tag.
-        </video>
+        <button onclick="switchTab('lessons')">Lessons</button>
+        <button onclick="switchTab('grades')">Grades</button>
     </div>
-    <ul class="weeks-list">
-        {% for week in weeks %}
-            <li onclick="showTopics({{ week.id }})">{{ week.title }}</li>
-            <ul id="topics-{{ week.id }}" class="topics-list">
-                {% for topic in week.topics.all %}
-                    <li onclick="loadVideo({{ topic.id }}, '{{ topic.video.url|escapejs }}')">{{ topic.title }}</li>
+
+    <div id="lessons" class="tab-content active">
+        <ul class="weeks-list">
+            {% for week in weeks %}
+                <li onclick="showTopics({{ week.id }})">{{ week.title }}</li>
+                <ul id="topics-{{ week.id }}" class="topics-list">
+                    {% for topic in week.topics.all %}
+                        <li><a href="{% url 'watch_topic' course.id topic.id %}">{{ topic.title }}</a></li>
+                    {% endfor %}
+                </ul>
+            {% endfor %}
+            <ul>
+                {% for quiz in quizzes %}
+                    <li><a href="{% url 'display_quiz' quiz.id %}">{{quiz.title}}</a></li>
                 {% endfor %}
             </ul>
-        {% endfor %}
-    </ul>
-    <div>
-        <h2>Unlocked Quizzes</h2>
-        <ul id="quizzes-list" class="quizzes-list">
-            {% for quiz in quizzes %}
-                <li><a href="{% url 'display_quiz' quiz.id %}">{{ quiz.title }}</a></li>
-            {% endfor %}
-            {% for quiz in quizzes %}
-            <a href="{% url 'quiz_result' quiz.id %}">View Quiz Result</a>
-            {% endfor %}
         </ul>
+    </div>
+
+    <div id="grades" class="tab-content">
+        <h2>Grades</h2>
+        <table class="grades-table">
+            <thead>
+                <tr>
+                    <th>Items</th>
+                    <th>Status</th>
+                    <th>Due</th>
+                    <th>Weight</th>
+                    <th>Grade</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for quiz in quizzes_data %}
+                <tr>
+                    <td>
+                        <div class="quiz-row">
+                            <img src="/static/icons/play-icon.png" alt="Play" class="play-icon">
+                            <div class="quiz-info">
+                                <a href="{% url 'quiz_result' quiz.quiz_id %}">
+                                    <strong>{{ quiz.video_title }}</strong><br>
+                                    
+                                </a>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="quiz-status {{ quiz.status|lower }}">
+                        {% if quiz.status == 'Locked' %}
+                            <span class="locked-icon">🔒</span> {{ quiz.status }}
+                        {% else %}
+                            <span class="unlocked-icon">🔓</span> {{ quiz.status }}
+                        {% endif %}
+                    </td>
+                    <td>{{ quiz.due_date|date:"M j, h:i A T" }}</td>
+                    <td>{{ quiz.weight }}%</td>
+                    <td>{{ quiz.score }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
     </div>
 </body>
 </html>

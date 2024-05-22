@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ course.title }} - {{ current_topic.title }}</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+        }
+        .sidebar {
+            width: 250px;
+            padding: 20px;
+            border-right: 1px solid #ddd;
+        }
+        .content {
+            flex: 1;
+            padding: 20px;
+        }
+        .video-player {
+            width: 100%;
+            max-width: 800px;
+            height: 450px;
+        }
+        .weeks-list, .topics-list {
+            list-style-type: none;
+            padding-left: 0;
+        }
+        .weeks-list li, .topics-list li {
+            cursor: pointer;
+            margin: 5px 0;
+            color: blue;
+            text-decoration: underline;
+        }
+        .topics-list {
+            margin-left: 15px;
+        }
+    </style>
+    <script>
+        function loadVideo(topicId, videoUrl) {
+            const videoPlayer = document.getElementById('video-player');
+            videoPlayer.src = videoUrl;
+
+            fetch(`/course/{{ course.id }}/topic/${topicId}/`)
+                .then(response => response.json())
+                .then(data => {
+                    console.log(data.message);
+                    if (data.unlocked_quizzes) {
+                        const quizzesList = document.getElementById('quizzes-list');
+                        quizzesList.innerHTML = '';  // Clear the existing list
+                        data.unlocked_quizzes.forEach(quiz => {
+                            const li = document.createElement('li');
+                            const link = document.createElement('a');
+                            link.href = `/quiz/${quiz.id}/`;
+                            link.textContent = quiz.title;
+                            li.appendChild(link);
+                            quizzesList.appendChild(li);
+                        });
+                    }
+                });
+        }
+    </script>
+</head>
+<body>
+    <div class="sidebar">
+        <h2>{{ course.title }}</h2>
+        <ul class="weeks-list">
+            {% for week in weeks %}
+                <ul class="topics-list">
+                    {% for topic in week.topics.all %}
+                        <li onclick="loadVideo({{ topic.id }}, '{{ topic.video.url }}')">{{ topic.title }}</li>
+                    {% endfor %}
+                </ul>
+            {% endfor %}
+        </ul>
+    </div>
+    <div class="content">
+        <h2>{{ current_topic.title }}</h2>
+        <video id="video-player" class="video-player" controls autoplay>
+            <source src="{{ current_topic.video.url }}" type="video/mp4">
+            Your browser does not support the video tag.
+        </video>
+        <h3>Unlocked Quizzes</h3>
+        <ul id="quizzes-list">
+            <!-- Populated dynamically via JavaScript -->
+        </ul>
+    </div>
+</body>
+</html>
